@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Students</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">My Website</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="../jquery/homePage.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../jquery/addStudentForm.html">Add Student</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../jquery/viewAllStudents.html">View All Students</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Students List</h2>
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Delete</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody">
+                <!-- Dynamic data from API will be added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
+
+    <script>
+        $(document).ready(function(){
+            // Fetch and display students
+            $.ajax({
+                url: "http://localhost/phpApi/apiFetchAll.php",
+                type: "GET",
+                dataType: "json",
+                success: function(response){
+                    if(response.length > 0){
+                        $.each(response, function(index, student){
+    var row = "<tr id='row-" + student.id + "'>" +
+                "<td>" + student.id + "</td>" +
+                "<td>" + student.firstName + "</td>" +  
+                "<td>" + student.lastName + "</td>" +  
+                "<td>" + student.phone + "</td>" +
+                "<td>" + student.email + "</td>" +
+                "<td><button class='delete-btn btn btn-danger btn-sm' data-id='" + student.id + "'>Delete</button></td>" +
+                "<td><button class='edit-btn btn btn-primary btn-sm' data-id='" + student.id + "'>Update</button></td>" +
+              "</tr>";
+    $("#studentTableBody").append(row);
+});
+
+                    } else {
+                        $("#studentTableBody").html("<tr><td colspan='7' class='text-center'>No students found</td></tr>");
+                    }
+                },
+                error: function(xhr, status, error){
+                    console.error("Error fetching students:", error);
+                    $("#studentTableBody").html("<tr><td colspan='7' class='text-center text-danger'>Failed to load data</td></tr>");
+                }
+            });
+    
+           
+            $(document).on("click", ".delete-btn", function(){
+                var studentId = $(this).data("id");
+                var row = $("#row-" + studentId);
+    
+                if(confirm("Are you sure you want to delete this student?")) {
+                    $.ajax({
+                        url: "http://localhost/phpApi/apiDelete.php",
+                        type: "POST",
+                        data: JSON.stringify({ sid: studentId }),
+                        contentType: "application/json",
+                        dataType: "json",
+                        success: function(response){
+                            if(response.status) {  
+                                alert(response.message);
+                                row.remove();
+                            } else {
+                                alert("Failed to delete record.");
+                            }
+                        },
+                        error: function(xhr, status, error){
+                            console.error("Error deleting student:", error);
+                        }
+                    });
+                }
+            });
+    
+           
+            $(document).on("click", ".edit-btn", function(){
+                var studentId = $(this).data("id");
+                window.location.href = "update.php?id=" + studentId; 
+            });
+    
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
